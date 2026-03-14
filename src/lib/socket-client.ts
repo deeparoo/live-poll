@@ -6,7 +6,12 @@ let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket || socket.disconnected) {
+    // Initialise the server-side Socket.io handler before connecting
+    fetch('/api/socket').catch(() => {});
+
     socket = io({
+      path: '/api/socket',
+      addTrailingSlash: false,
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 15,
       reconnectionDelay: 1000,

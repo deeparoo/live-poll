@@ -1,8 +1,6 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  // Required for custom server (Socket.io)
-  // Webpack won't bundle server-only modules
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
