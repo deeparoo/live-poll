@@ -9,7 +9,8 @@ import { cn, formatNumber } from '@/lib/utils';
 import type { PollQuestion, QuestionResults, PollSession } from '@/types';
 
 export default function PresentPage() {
-  const { code } = useParams<{ code: string }>();
+  const params = useParams<{ code: string }>();
+  const code = (params?.code as string) ?? '';
   const sessionCode = code.toUpperCase();
 
   const [session, setSession] = useState<PollSession | null>(null);

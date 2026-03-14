@@ -28,7 +28,8 @@ async function getDeviceHash(): Promise<string> {
 }
 
 export default function JoinPage() {
-  const { code } = useParams<{ code: string }>();
+  const params = useParams<{ code: string }>();
+  const code = (params?.code as string) ?? '';
   const sessionCode = code.toUpperCase();
 
   const [status, setStatus] = useState<SessionStatus>('waiting');

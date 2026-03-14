@@ -11,7 +11,8 @@ import { getSocket } from '@/lib/socket-client';
 import { cn } from '@/lib/utils';
 
 export default function AdminSessionPage() {
-  const { code } = useParams<{ code: string }>();
+  const params = useParams<{ code: string }>();
+  const code = (params?.code as string) ?? '';
   const router = useRouter();
   const sessionCode = code.toUpperCase();
 
