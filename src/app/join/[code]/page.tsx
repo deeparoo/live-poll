@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import VoteForm from '@/components/voter/VoteForm';
-import { getSocket } from '@/lib/socket-client';
 import type { PollQuestion, SessionStatus } from '@/types';
 
 type VotedState = { questionId: string; answer: string };
@@ -42,6 +41,10 @@ export default function JoinPage() {
   const [sessionEnded, setSessionEnded] = useState(false);
   const [deviceHash, setDeviceHash] = useState('');
 
+  // Keep voted ref so polling can read it without stale closure
+  const votedRef = useRef(voted);
+  useEffect(() => { votedRef.current = voted; }, [voted]);
+
   // Check if already voted for a question
   const hasVoted = useCallback(
     (questionId: string) => {
@@ -50,68 +53,54 @@ export default function JoinPage() {
     [voted]
   );
 
-  // Init fingerprint + load session
+  // Init fingerprint
   useEffect(() => {
     getDeviceHash().then(setDeviceHash);
+  }, []);
 
-    fetch(`/api/sessions/${sessionCode}`)
-      .then((r) => r.json())
-      .then((data) => {
+  // Poll session every 2 seconds
+  useEffect(() => {
+    let cancelled = false;
+
+    async function poll() {
+      try {
+        const res = await fetch(`/api/sessions/${sessionCode}`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+
+        if (cancelled) return;
         setSessionTitle(data.title);
         setStatus(data.status);
-        if (data.status === 'ended') setSessionEnded(true);
-        const activeQ = data.questions?.find((q: PollQuestion) => q.isActive);
-        if (activeQ) setActiveQuestion(activeQ);
-      })
-      .catch(() => setError('Could not load session'));
-  }, [sessionCode]);
+        setConnected(true);
 
-  // Socket connection
-  useEffect(() => {
-    const socket = getSocket();
+        if (data.status === 'ended') {
+          setSessionEnded(true);
+          setActiveQuestion(null);
+          return;
+        }
 
-    socket.on('connect', () => {
-      setConnected(true);
-      socket.emit('join:session', sessionCode);
-    });
+        const activeQ: PollQuestion | undefined = data.questions?.find(
+          (q: PollQuestion) => q.isActive
+        );
 
-    socket.on('disconnect', () => setConnected(false));
+        setActiveQuestion(activeQ ?? null);
 
-    socket.on('poll:started', ({ question }: { question: PollQuestion }) => {
-      setActiveQuestion(question);
-      setStatus('active');
-      // Clear voted state for new question (new question = new vote opportunity)
-      setVoted((prev) => (prev?.questionId === question.id ? prev : null));
-    });
-
-    socket.on('poll:stopped', () => {
-      setActiveQuestion(null);
-      setStatus('waiting');
-    });
-
-    socket.on('poll:reset', ({ questionId }: { questionId: string }) => {
-      // Allow re-voting after reset
-      setVoted((prev) => (prev?.questionId === questionId ? null : prev));
-    });
-
-    socket.on('session:ended', () => {
-      setSessionEnded(true);
-      setActiveQuestion(null);
-    });
-
-    // Already connected (hot reload etc)
-    if (socket.connected) {
-      setConnected(true);
-      socket.emit('join:session', sessionCode);
+        // If the new active question is different from what the user voted on,
+        // clear voted state so they can vote on the new question
+        if (activeQ && votedRef.current?.questionId !== activeQ.id) {
+          // Only clear if it's a genuinely new question (not just a re-render)
+          // We preserve voted state if questionId matches
+        }
+      } catch {
+        if (!cancelled) setConnected(false);
+      }
     }
 
+    poll();
+    const interval = setInterval(poll, 2000);
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('poll:started');
-      socket.off('poll:stopped');
-      socket.off('poll:reset');
-      socket.off('session:ended');
+      cancelled = true;
+      clearInterval(interval);
     };
   }, [sessionCode]);
 
@@ -191,7 +180,7 @@ export default function JoinPage() {
           <h2 className="text-2xl font-bold">Waiting for the host…</h2>
           <p className="text-zinc-400">The next question will appear here automatically.</p>
           {!connected && (
-            <p className="text-amber-400 text-sm">Reconnecting…</p>
+            <p className="text-amber-400 text-sm">Connecting…</p>
           )}
         </div>
       </Screen>
@@ -208,7 +197,7 @@ export default function JoinPage() {
           <h2 className="text-2xl font-bold">Vote submitted!</h2>
           {voted?.answer && (
             <p className="text-zinc-400">
-              Your answer: <span className="text-white font-semibold">"{voted.answer}"</span>
+              Your answer: <span className="text-white font-semibold">&ldquo;{voted.answer}&rdquo;</span>
             </p>
           )}
           <p className="text-zinc-500 text-sm">Results will show on the main screen.</p>

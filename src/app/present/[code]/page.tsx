@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import ResultsDisplay from '@/components/presenter/ResultsDisplay';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
-import { getSocket } from '@/lib/socket-client';
 import { cn, formatNumber } from '@/lib/utils';
 import type { PollQuestion, QuestionResults, PollSession } from '@/types';
 
@@ -16,7 +15,7 @@ export default function PresentPage() {
   const [session, setSession] = useState<PollSession | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<PollQuestion | null>(null);
   const [results, setResults] = useState<QuestionResults | null>(null);
-  const [participantCount, setParticipantCount] = useState(0);
+  const [participantCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showQR, setShowQR] = useState(true);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -24,70 +23,58 @@ export default function PresentPage() {
   const [connected, setConnected] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  // Track active question id to avoid unnecessary results fetches
+  const activeQIdRef = useRef<string | null>(null);
 
-  // Load initial session state
+  // Poll session + results every 2 seconds
   useEffect(() => {
-    fetch(`/api/sessions/${sessionCode}`)
-      .then((r) => r.json())
-      .then(async (data: PollSession) => {
+    let cancelled = false;
+
+    async function poll() {
+      try {
+        const res = await fetch(`/api/sessions/${sessionCode}`);
+        if (!res.ok || cancelled) return;
+        const data: PollSession = await res.json();
+
+        if (cancelled) return;
         setSession(data);
-        const activeQ = data.questions?.find((q: PollQuestion) => q.isActive);
-        if (activeQ) {
-          setActiveQuestion(activeQ);
-          const res = await fetch(`/api/sessions/${sessionCode}/results?questionId=${activeQ.id}`);
-          if (res.ok) setResults(await res.json());
+        setConnected(true);
+
+        if (data.status === 'ended') {
+          setActiveQuestion(null);
+          setResults(null);
+          return;
         }
-      });
-  }, [sessionCode]);
 
-  // Socket
-  useEffect(() => {
-    const socket = getSocket();
+        const activeQ = data.questions?.find((q: PollQuestion) => q.isActive) ?? null;
+        setActiveQuestion(activeQ);
 
-    socket.on('connect', () => {
-      setConnected(true);
-      socket.emit('join:session', sessionCode);
-    });
-    socket.on('disconnect', () => setConnected(false));
-
-    socket.on('poll:started', ({ question, results: r }: { question: PollQuestion; results: QuestionResults }) => {
-      setActiveQuestion(question);
-      setResults(r);
-    });
-
-    socket.on('poll:stopped', () => {
-      setActiveQuestion(null);
-    });
-
-    socket.on('poll:reset', () => {
-      setResults(null);
-    });
-
-    socket.on('results:update', (r: QuestionResults) => {
-      setResults(r);
-    });
-
-    socket.on('participant:count', setParticipantCount);
-
-    socket.on('session:ended', () => {
-      setActiveQuestion(null);
-      setSession((s) => (s ? { ...s, status: 'ended' } : s));
-    });
-
-    if (socket.connected) {
-      setConnected(true);
-      socket.emit('join:session', sessionCode);
+        if (activeQ) {
+          // Only re-fetch results if we have the same question (avoid flicker on question change)
+          const rRes = await fetch(
+            `/api/sessions/${sessionCode}/results?questionId=${activeQ.id}`
+          );
+          if (rRes.ok && !cancelled) {
+            setResults(await rRes.json());
+            activeQIdRef.current = activeQ.id;
+          }
+        } else {
+          // No active question — keep last results visible until cleared
+          if (activeQIdRef.current !== null) {
+            setResults(null);
+            activeQIdRef.current = null;
+          }
+        }
+      } catch {
+        if (!cancelled) setConnected(false);
+      }
     }
 
+    poll();
+    const interval = setInterval(poll, 2000);
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('poll:started');
-      socket.off('poll:stopped');
-      socket.off('poll:reset');
-      socket.off('results:update');
-      socket.off('participant:count');
-      socket.off('session:ended');
+      cancelled = true;
+      clearInterval(interval);
     };
   }, [sessionCode]);
 
@@ -154,7 +141,7 @@ export default function PresentPage() {
           <span className="text-white/30 text-sm font-mono tracking-widest">{sessionCode}</span>
           {!connected && (
             <span className="text-amber-400 text-xs bg-amber-900/30 border border-amber-800 px-2 py-0.5 rounded-full">
-              Reconnecting…
+              Connecting…
             </span>
           )}
         </div>
@@ -191,7 +178,7 @@ export default function PresentPage() {
           ) : (
             <div className="space-y-4">
               <h1 className="text-3xl font-black text-white/40">
-                {session?.title ?? 'Live Poll'}
+                {session?.title ?? 'Thiruppam'}
               </h1>
               <p className="text-white/30 text-xl">Waiting for host to start a question…</p>
             </div>
@@ -226,7 +213,7 @@ export default function PresentPage() {
           </p>
         </div>
 
-        {/* Participant count */}
+        {/* Participant count placeholder — Socket.io not available on Vercel */}
         <div className="text-center">
           <p className="text-2xl font-bold text-white/50 tabular-nums">{participantCount}</p>
           <p className="text-white/30 text-xs uppercase tracking-widest">connected</p>

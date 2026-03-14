@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import QuestionEditor from '@/components/admin/QuestionEditor';
 import SessionControls from '@/components/admin/SessionControls';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import type { PollSession, PollQuestion, QuestionType } from '@/types';
-import { getSocket } from '@/lib/socket-client';
 import { cn } from '@/lib/utils';
 
 export default function AdminSessionPage() {
@@ -54,19 +53,13 @@ export default function AdminSessionPage() {
     fetchSession().finally(() => setLoading(false));
   }, [sessionCode, fetchSession]);
 
-  // Socket for participant count
+  // Poll session every 3s (Socket.io not available on Vercel serverless)
+  const fetchSessionRef = useRef(fetchSession);
+  useEffect(() => { fetchSessionRef.current = fetchSession; }, [fetchSession]);
   useEffect(() => {
-    const socket = getSocket();
-    socket.emit('join:session', sessionCode);
-    socket.on('participant:count', setParticipantCount);
-    socket.on('poll:started', fetchSession);
-    socket.on('poll:stopped', fetchSession);
-    return () => {
-      socket.off('participant:count', setParticipantCount);
-      socket.off('poll:started', fetchSession);
-      socket.off('poll:stopped', fetchSession);
-    };
-  }, [sessionCode, fetchSession]);
+    const id = setInterval(() => fetchSessionRef.current(), 3000);
+    return () => clearInterval(id);
+  }, []);
 
   async function control(action: string, questionId?: string) {
     setControlling(true);
