@@ -32,9 +32,10 @@ export function generateAdminToken(): string {
 }
 
 export function getJoinUrl(sessionCode: string): string {
-  const base =
+  const base = (
     process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+  ).trim().replace(/\/$/, '');
   return `${base}/join/${sessionCode}`;
 }
 

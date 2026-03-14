@@ -44,24 +44,25 @@ export default function Home() {
         <div className="relative z-10 max-w-xl w-full text-center space-y-6">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <span className="text-4xl">⚡</span>
-            <span className="text-3xl font-black tracking-tight">LivePoll</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/thiruppam-logo.png" alt="Thiruppam" className="h-12 w-12 object-contain" />
+            <span className="text-3xl font-black tracking-tight">Thiruppam</span>
           </div>
 
           <h1 className="text-5xl font-black leading-tight tracking-tight">
-            Real-time polling{' '}
+            The story is{' '}
             <span className="bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">
-              for any crowd
+              in your hands.
             </span>
           </h1>
           <p className="text-zinc-400 text-xl">
-            600 people. One screen. Instant results.
+            Listen to the drama unfold, and when the moment comes, you decide what happens next.
           </p>
 
           {/* Join panel */}
           <div className="mt-10 bg-zinc-900/80 backdrop-blur border border-zinc-800 rounded-3xl p-8 space-y-4">
             <p className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">
-              Join a session
+              Join the story
             </p>
             <div className="flex gap-3">
               <input
@@ -102,7 +103,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-6 text-zinc-600 text-sm">
-        LivePoll · Built for auditoriums, boardrooms, and everything in between
+        Thiruppam · By Kadhai Osai
       </footer>
     </div>
   );

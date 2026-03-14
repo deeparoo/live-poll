@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LivePoll — Real-time Audience Polling',
-  description: 'Instant live polling for large audiences. No app required.',
+  title: 'Thiruppam — The story is in your hands.',
+  description: 'Listen to the drama unfold, and when the moment comes, you decide what happens next.',
   icons: { icon: '/favicon.svg' },
 };
 
