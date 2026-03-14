@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PollSession {
+  id          String     @id @default(cuid())
+  sessionCode String     @unique
+  title       String
+  status      String     @default("waiting") // waiting | active | ended
+  adminToken  String
+  bgImage     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  questions   Question[]
+
+  @@index([sessionCode])
+}
+
+model Question {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   PollSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  text      String
+  type      String      // multiple_choice | multiple_answer | yes_no | rating | word_cloud
+  order     Int         @default(0)
+  isActive  Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  options   Option[]
+  votes     UserVote[]
+
+  @@index([sessionId])
+}
+
+model Option {
+  id         String     @id @default(cuid())
+  questionId String
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  order      Int        @default(0)
+  votes      UserVote[]
+
+  @@index([questionId])
+}
+
+model UserVote {
+  id          String   @id @default(cuid())
+  sessionCode String
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId    String?
+  option      Option?  @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  ratingValue Int?
+  wordValue   String?
+  deviceHash  String
+  timestamp   DateTime @default(now())
+
+  @@unique([questionId, deviceHash])
+  @@index([sessionCode])
+  @@index([questionId])
+}
