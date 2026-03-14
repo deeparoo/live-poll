@@ -15,7 +15,7 @@ interface VoteFormProps {
   submitting?: boolean;
 }
 
-export default function VoteForm({ question, onSubmit, submitting }: VoteFormProps) {
+export default function VoteForm({ question, onSubmit, submitting = false }: VoteFormProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rating, setRating] = useState<number>(0);
   const [word, setWord] = useState('');
