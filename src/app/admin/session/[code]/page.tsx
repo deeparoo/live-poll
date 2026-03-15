@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import QuestionEditor from '@/components/admin/QuestionEditor';
 import SessionControls from '@/components/admin/SessionControls';
@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 export default function AdminSessionPage() {
   const params = useParams<{ code: string }>();
   const code = (params?.code as string) ?? '';
-  const router = useRouter();
   const sessionCode = code.toUpperCase();
 
   const [session, setSession] = useState<PollSession | null>(null);
