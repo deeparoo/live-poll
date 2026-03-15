@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { calculateResults } from '@/lib/results';
-import { scheduleBroadcast } from '@/lib/broadcast';
 import { normalizeWord } from '@/lib/utils';
 
 // POST /api/sessions/[code]/vote — submit a vote
@@ -95,12 +93,6 @@ export async function POST(
       }
       throw err;
     }
-
-    // Throttled broadcast to all session participants
-    scheduleBroadcast(sessionCode, async () => {
-      const results = await calculateResults(questionId);
-      globalThis.io?.to(`session:${sessionCode}`).emit('results:update', results);
-    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

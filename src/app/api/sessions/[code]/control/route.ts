@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { calculateResults } from '@/lib/results';
 
 type ControlAction = 'start' | 'stop' | 'reset' | 'end';
 
@@ -27,9 +26,6 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const io = globalThis.io;
-    const room = `session:${params.code.toUpperCase()}`;
-
     if (action === 'start') {
       if (!questionId) return NextResponse.json({ error: 'questionId required' }, { status: 400 });
 
@@ -47,10 +43,6 @@ export async function POST(
         data: { status: 'active' },
       });
 
-      const question = session.questions.find((q) => q.id === questionId);
-      const results = await calculateResults(questionId);
-
-      io?.to(room).emit('poll:started', { question, results });
       return NextResponse.json({ success: true, action: 'started' });
     }
 
@@ -65,7 +57,6 @@ export async function POST(
         data: { status: 'waiting' },
       });
 
-      io?.to(room).emit('poll:stopped');
       return NextResponse.json({ success: true, action: 'stopped' });
     }
 
@@ -73,10 +64,6 @@ export async function POST(
       if (!questionId) return NextResponse.json({ error: 'questionId required' }, { status: 400 });
 
       await prisma.userVote.deleteMany({ where: { questionId } });
-      const results = await calculateResults(questionId);
-
-      io?.to(room).emit('poll:reset', { questionId });
-      io?.to(room).emit('results:update', results);
       return NextResponse.json({ success: true, action: 'reset' });
     }
 
@@ -90,7 +77,6 @@ export async function POST(
         data: { status: 'ended' },
       });
 
-      io?.to(room).emit('session:ended');
       return NextResponse.json({ success: true, action: 'ended' });
     }
 
