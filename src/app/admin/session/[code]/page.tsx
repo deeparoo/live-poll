@@ -6,7 +6,7 @@ import Link from 'next/link';
 import QuestionEditor from '@/components/admin/QuestionEditor';
 import SessionControls from '@/components/admin/SessionControls';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
-import type { PollSession, PollQuestion, QuestionType } from '@/types';
+import type { PollSession, PollQuestion, QuestionType, QuestionResults } from '@/types';
 import { cn } from '@/lib/utils';
 
 export default function AdminSessionPage() {
@@ -26,8 +26,9 @@ export default function AdminSessionPage() {
   const [controlling, setControlling] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [participantCount, setParticipantCount] = useState(0);
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
 
-  // Load session
+  // Load session + vote counts for all questions
   const fetchSession = useCallback(async () => {
     const res = await fetch(`/api/sessions/${sessionCode}`);
     if (!res.ok) {
@@ -40,6 +41,21 @@ export default function AdminSessionPage() {
     const activeQ = data.questions.find((q: PollQuestion) => q.isActive);
     if (activeQ && !selectedQId) setSelectedQId(activeQ.id);
     else if (!selectedQId && data.questions.length > 0) setSelectedQId(data.questions[0].id);
+
+    // Fetch vote counts for all questions in parallel
+    const counts: Record<string, number> = {};
+    await Promise.all(
+      data.questions.map(async (q: PollQuestion) => {
+        try {
+          const r = await fetch(`/api/sessions/${sessionCode}/results?questionId=${q.id}`);
+          if (r.ok) {
+            const result: QuestionResults = await r.json();
+            counts[q.id] = result?.totalVotes ?? 0;
+          }
+        } catch { /* ignore */ }
+      })
+    );
+    setVoteCounts(counts);
   }, [sessionCode, selectedQId]);
 
   useEffect(() => {
@@ -244,6 +260,11 @@ export default function AdminSessionPage() {
                       {q.isActive && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border border-emerald-800">
                           Live
+                        </span>
+                      )}
+                      {(voteCounts[q.id] ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-brand-900/40 text-brand-400 border border-brand-800 tabular-nums">
+                          {voteCounts[q.id]} vote{voteCounts[q.id] === 1 ? '' : 's'}
                         </span>
                       )}
                     </div>

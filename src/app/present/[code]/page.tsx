@@ -59,11 +59,8 @@ export default function PresentPage() {
             activeQIdRef.current = activeQ.id;
           }
         } else {
-          // No active question — keep last results visible until cleared
-          if (activeQIdRef.current !== null) {
-            setResults(null);
-            activeQIdRef.current = null;
-          }
+          // No active question — keep last results on screen (don't wipe the chart)
+          // Results will naturally be replaced when a new question goes live
         }
       } catch {
         if (!cancelled) setConnected(false);
