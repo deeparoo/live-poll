@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -19,6 +20,14 @@ interface PollBarChartProps {
 }
 
 export default function PollBarChart({ options, totalVotes, animate = true }: PollBarChartProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const data = options.map((opt) => ({
     name: opt.text,
     count: opt.count,
@@ -26,13 +35,16 @@ export default function PollBarChart({ options, totalVotes, animate = true }: Po
     label: `${opt.percentage}% (${opt.count})`,
   }));
 
+  const yAxisWidth = isMobile ? 72 : 120;
+  const rightMargin = isMobile ? 72 : 100;
+
   return (
     <div className="w-full min-h-[300px]">
       <ResponsiveContainer width="100%" height={420}>
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 8, right: 120, bottom: 8, left: 16 }}
+          margin={{ top: 8, right: rightMargin, bottom: 8, left: 8 }}
           barCategoryGap="20%"
         >
           <XAxis
@@ -43,10 +55,10 @@ export default function PollBarChart({ options, totalVotes, animate = true }: Po
           <YAxis
             type="category"
             dataKey="name"
-            width={200}
+            width={yAxisWidth}
             tick={{
               fill: '#e4e4f0',
-              fontSize: 15,
+              fontSize: isMobile ? 13 : 15,
               fontWeight: 600,
             }}
             tickLine={false}
@@ -71,7 +83,7 @@ export default function PollBarChart({ options, totalVotes, animate = true }: Po
               position="right"
               style={{
                 fill: '#a1a1b5',
-                fontSize: 14,
+                fontSize: isMobile ? 12 : 14,
                 fontWeight: 700,
                 fontFamily: 'var(--font-geist-mono, monospace)',
               }}

@@ -26,6 +26,8 @@ export default function AdminSessionPage() {
   const [showQR, setShowQR] = useState(false);
   const [participantCount, setParticipantCount] = useState(0);
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmEnd, setConfirmEnd] = useState(false);
 
   // Load session + vote counts for all questions
   const fetchSession = useCallback(async () => {
@@ -116,11 +118,11 @@ export default function AdminSessionPage() {
   }
 
   async function deleteQuestion(questionId: string) {
-    if (!confirm('Delete this question and all its votes?')) return;
     await fetch(
       `/api/sessions/${sessionCode}/questions/${questionId}?adminToken=${adminToken}`,
       { method: 'DELETE' }
     );
+    setConfirmDeleteId(null);
     if (selectedQId === questionId) setSelectedQId(null);
     await fetchSession();
   }
@@ -270,24 +272,38 @@ export default function AdminSessionPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingQuestion(q);
-                      setShowEditor(true);
-                      setSelectedQId(q.id);
-                    }}
-                    className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-700 transition text-sm"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteQuestion(q.id); }}
-                    className="p-2 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-900/20 transition text-sm"
-                  >
-                    ✕
-                  </button>
+                <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {confirmDeleteId === q.id ? (
+                    <>
+                      <button
+                        onClick={() => deleteQuestion(q.id)}
+                        className="min-w-[44px] min-h-[44px] px-3 rounded-lg bg-red-900/40 text-red-400 hover:bg-red-900/60 transition text-xs font-semibold"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="min-w-[44px] min-h-[44px] px-3 rounded-lg text-zinc-400 hover:bg-zinc-700 transition text-xs"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={() => { setEditingQuestion(q); setShowEditor(true); setSelectedQId(q.id); }}
+                        className="min-w-[44px] min-h-[44px] rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-700 transition text-sm"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(q.id)}
+                        className="min-w-[44px] min-h-[44px] rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-900/20 transition text-sm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -342,16 +358,32 @@ export default function AdminSessionPage() {
           </div>
 
           {/* End session */}
-          <button
-            onClick={() => {
-              if (confirm('End the session? Participants will no longer be able to vote.')) {
-                control('end');
-              }
-            }}
-            className="w-full py-2.5 rounded-xl border border-zinc-800 text-zinc-600 hover:border-red-900 hover:text-red-400 text-sm font-semibold transition"
-          >
-            End Session
-          </button>
+          {confirmEnd ? (
+            <div className="space-y-2">
+              <p className="text-xs text-zinc-400 text-center">End session? Participants can no longer vote.</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { control('end'); setConfirmEnd(false); }}
+                  className="flex-1 py-2.5 rounded-xl bg-red-900/40 border border-red-900 text-red-400 text-sm font-semibold transition hover:bg-red-900/60"
+                >
+                  Yes, End
+                </button>
+                <button
+                  onClick={() => setConfirmEnd(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-semibold transition hover:border-zinc-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmEnd(true)}
+              className="w-full py-2.5 rounded-xl border border-zinc-800 text-zinc-600 hover:border-red-900 hover:text-red-400 text-sm font-semibold transition"
+            >
+              End Session
+            </button>
+          )}
         </div>
       </div>
     </div>

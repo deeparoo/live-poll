@@ -133,7 +133,7 @@ export default function PresentPage() {
       style={{ fontFamily: 'var(--font-geist-sans, system-ui, sans-serif)' }}
     >
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 pt-6 pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 sm:px-8 pt-4 sm:pt-6 pointer-events-none">
         <div className="flex items-center gap-3">
           <span className="text-white/30 text-sm font-mono tracking-widest">{sessionCode}</span>
           {!connected && (
@@ -165,11 +165,11 @@ export default function PresentPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col px-10 py-16 gap-6">
+      <div className="flex-1 flex flex-col px-4 sm:px-10 py-16 sm:py-16 gap-6">
         {/* Question */}
         <div className="text-center mt-4">
           {activeQuestion ? (
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight max-w-4xl mx-auto">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight max-w-4xl mx-auto">
               {activeQuestion.text}
             </h1>
           ) : (
@@ -199,19 +199,19 @@ export default function PresentPage() {
       </div>
 
       {/* Bottom bar */}
-      <div className="absolute bottom-0 left-0 right-0 px-8 pb-6 flex items-end justify-between pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 pb-4 sm:pb-6 flex items-end justify-between pointer-events-none">
         {/* Vote count */}
-        <div className="space-y-1">
-          <p className="text-6xl font-black text-white tabular-nums">
+        <div className="space-y-0.5">
+          <p className="text-4xl sm:text-6xl font-black text-white tabular-nums">
             {formatNumber(results?.totalVotes ?? 0)}
           </p>
-          <p className="text-white/40 text-sm font-semibold uppercase tracking-widest">
+          <p className="text-white/40 text-xs sm:text-sm font-semibold uppercase tracking-widest">
             votes
           </p>
         </div>
 
         {/* Participant count placeholder — Socket.io not available on Vercel */}
-        <div className="text-center">
+        <div className="text-center hidden sm:block">
           <p className="text-2xl font-bold text-white/50 tabular-nums">{participantCount}</p>
           <p className="text-white/30 text-xs uppercase tracking-widest">connected</p>
         </div>
@@ -219,7 +219,7 @@ export default function PresentPage() {
         {/* QR Code */}
         {showQR && (
           <div className="pointer-events-auto" onClick={() => setShowQR(false)}>
-            <QRCodeDisplay sessionCode={sessionCode} size={100} showUrl={true} />
+            <QRCodeDisplay sessionCode={sessionCode} size={80} showUrl={true} />
           </div>
         )}
       </div>
@@ -231,7 +231,7 @@ export default function PresentPage() {
           onClick={() => setShowShortcuts(false)}
         >
           <div
-            className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 space-y-4 min-w-[320px]"
+            className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 sm:p-8 space-y-4 w-[90vw] max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-bold text-lg mb-4">Keyboard Shortcuts</h3>
