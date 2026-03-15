@@ -24,8 +24,8 @@ export default function PollPieChart({ options, animate = true }: PollPieChartPr
   }));
 
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full min-h-[300px]">
+      <ResponsiveContainer width="100%" height={420}>
         <PieChart>
           <Pie
             data={data}

@@ -27,8 +27,8 @@ export default function PollBarChart({ options, totalVotes, animate = true }: Po
   }));
 
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full min-h-[300px]">
+      <ResponsiveContainer width="100%" height={420}>
         <BarChart
           data={data}
           layout="vertical"
