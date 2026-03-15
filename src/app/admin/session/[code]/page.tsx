@@ -154,8 +154,8 @@ export default function AdminSessionPage() {
       <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-zinc-500 hover:text-white text-sm font-semibold transition">
-              ⚡ LivePoll
+            <Link href="/admin/history" className="text-zinc-500 hover:text-white text-sm font-semibold transition">
+              ← Sessions
             </Link>
             <span className="text-zinc-700">/</span>
             <span className="font-black text-lg tracking-wider">{sessionCode}</span>

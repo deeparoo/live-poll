@@ -31,6 +31,11 @@ export default function AdminPage() {
       // Store admin token securely in localStorage
       localStorage.setItem(`admin-token:${session.sessionCode}`, session.adminToken);
 
+      // Track session in history list
+      const history = JSON.parse(localStorage.getItem('thiruppam-sessions') ?? '[]');
+      history.unshift({ code: session.sessionCode, title: title.trim(), createdAt: new Date().toISOString() });
+      localStorage.setItem('thiruppam-sessions', JSON.stringify(history.slice(0, 50)));
+
       router.push(`/admin/session/${session.sessionCode}`);
     } catch {
       setError('Network error. Please try again.');
@@ -90,6 +95,13 @@ export default function AdminPage() {
         <p className="text-xs text-zinc-600 text-center">
           Your admin token will be saved in this browser. Don't clear storage while presenting.
         </p>
+
+        <a
+          href="/admin/history"
+          className="block text-center text-sm text-zinc-500 hover:text-brand-400 transition"
+        >
+          View past sessions →
+        </a>
       </div>
     </div>
   );
