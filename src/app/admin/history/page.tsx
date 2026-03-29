@@ -46,6 +46,12 @@ export default function HistoryPage() {
           <h1 className="text-3xl font-black mt-3">Past Sessions</h1>
           <p className="text-zinc-400 mt-1 text-sm">Sessions created on this browser.</p>
         </div>
+        <Link
+          href="/admin/all"
+          className="text-sm text-zinc-500 hover:text-brand-400 transition font-semibold"
+        >
+          View all sessions →
+        </Link>
       </div>
 
       {sessions.length === 0 ? (

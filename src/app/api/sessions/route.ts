@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateSessionCode, generateAdminToken } from '@/lib/utils';
 
+// GET /api/sessions — list all sessions (requires super-admin token)
+export async function GET(req: NextRequest) {
+  const token = req.headers.get('x-super-admin-token');
+  const expected = process.env.SUPER_ADMIN_TOKEN;
+
+  if (!expected || token !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const sessions = await prisma.pollSession.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: {
+      sessionCode: true,
+      title: true,
+      status: true,
+      createdAt: true,
+      _count: { select: { questions: true } },
+    },
+  });
+
+  return NextResponse.json(sessions);
+}
+
 // POST /api/sessions — create a new poll session
 export async function POST(req: NextRequest) {
   try {
