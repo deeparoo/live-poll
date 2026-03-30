@@ -68,7 +68,7 @@ export default function PresentPage() {
     }
 
     poll();
-    const interval = setInterval(poll, 2000);
+    const interval = setInterval(poll, 4000);
     return () => {
       cancelled = true;
       clearInterval(interval);
