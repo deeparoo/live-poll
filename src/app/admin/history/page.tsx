@@ -24,7 +24,7 @@ export default function HistoryPage() {
       if (key?.startsWith('admin-token:')) {
         const code = key.replace('admin-token:', '');
         if (!savedCodes.has(code)) {
-          saved.push({ code, title: code, createdAt: '' });
+          saved.push({ code, title: '', createdAt: '' });
           savedCodes.add(code);
         }
       }
@@ -72,7 +72,7 @@ export default function HistoryPage() {
               <div className="min-w-0">
                 <p className="font-bold text-white truncate">{s.title || s.code}</p>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs font-mono text-zinc-500 tracking-wider">{s.code}</span>
+                  {s.title && <span className="text-xs font-mono text-zinc-500 tracking-wider">{s.code}</span>}
                   {s.createdAt && (
                     <span className="text-xs text-zinc-600">
                       {new Date(s.createdAt).toLocaleDateString('en-GB', {

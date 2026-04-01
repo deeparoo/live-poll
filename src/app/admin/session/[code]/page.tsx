@@ -192,24 +192,10 @@ export default function AdminSessionPage() {
         </div>
       </header>
 
-      {/* QR modal */}
+      {/* QR inline panel */}
       {showQR && (
-        <div
-          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowQR(false)}
-        >
-          <div
-            className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <QRCodeDisplay sessionCode={sessionCode} size={260} />
-            <button
-              onClick={() => setShowQR(false)}
-              className="mt-6 w-full py-2.5 border border-zinc-700 rounded-xl text-zinc-400 hover:text-white transition"
-            >
-              Close
-            </button>
-          </div>
+        <div className="border-b border-zinc-800 bg-zinc-950 flex justify-center py-6 px-4">
+          <QRCodeDisplay sessionCode={sessionCode} size={200} showUrl={true} />
         </div>
       )}
 

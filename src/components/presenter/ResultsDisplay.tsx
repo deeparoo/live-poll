@@ -9,9 +9,10 @@ import RatingDisplay from '@/components/charts/RatingDisplay';
 interface ResultsDisplayProps {
   results: QuestionResults;
   chartType?: 'bar' | 'pie';
+  animate?: boolean;
 }
 
-export default function ResultsDisplay({ results, chartType = 'bar' }: ResultsDisplayProps) {
+export default function ResultsDisplay({ results, chartType = 'bar', animate = true }: ResultsDisplayProps) {
   const { questionType, options, words, averageRating, ratingDistribution, maxRating } = results;
 
   if (questionType === 'word_cloud') {
@@ -39,5 +40,5 @@ export default function ResultsDisplay({ results, chartType = 'bar' }: ResultsDi
     return <PollPieChart options={options} />;
   }
 
-  return <PollBarChart options={options} totalVotes={results.totalVotes} />;
+  return <PollBarChart options={options} totalVotes={results.totalVotes} animate={animate} />;
 }

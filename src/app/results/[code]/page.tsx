@@ -151,7 +151,7 @@ export default function ResultsPage() {
           {/* Chart */}
           {results && results.totalVotes > 0 ? (
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 sm:p-6">
-              <ResultsDisplay results={results} chartType="bar" />
+              <ResultsDisplay results={results} chartType="bar" animate={false} />
             </div>
           ) : (
             <div className="border border-zinc-800 border-dashed rounded-2xl py-8 text-center text-zinc-600 text-sm">
