@@ -39,6 +39,7 @@ export default function JoinPage() {
   const [sessionTitle, setSessionTitle] = useState('');
   const [connected, setConnected] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [deviceHash, setDeviceHash] = useState('');
 
   // Keep voted ref so polling can read it without stale closure
@@ -65,6 +66,7 @@ export default function JoinPage() {
     async function poll() {
       try {
         const res = await fetch(`/api/sessions/${sessionCode}`);
+        if (res.status === 404 && !cancelled) { setNotFound(true); return; }
         if (!res.ok || cancelled) return;
         const data = await res.json();
 
@@ -151,6 +153,19 @@ export default function JoinPage() {
   }
 
   // --- Render ---
+
+  if (notFound) {
+    return (
+      <Screen title="" code={sessionCode}>
+        <div className="text-center space-y-4">
+          <span className="text-5xl">🔍</span>
+          <h2 className="text-2xl font-bold">Session not found</h2>
+          <p className="text-zinc-400">Check the code and try again.</p>
+          <a href="/" className="inline-block text-brand-400 hover:text-brand-300 text-sm font-semibold">← Back to home</a>
+        </div>
+      </Screen>
+    );
+  }
 
   if (sessionEnded) {
     return (

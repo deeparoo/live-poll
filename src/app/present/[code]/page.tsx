@@ -21,6 +21,7 @@ export default function PresentPage() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
   const [connected, setConnected] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   // Track active question id to avoid unnecessary results fetches
@@ -33,6 +34,7 @@ export default function PresentPage() {
     async function poll() {
       try {
         const res = await fetch(`/api/sessions/${sessionCode}`);
+        if (res.status === 404 && !cancelled) { setNotFound(true); return; }
         if (!res.ok || cancelled) return;
         const data: PollSession = await res.json();
 
@@ -125,6 +127,16 @@ export default function PresentPage() {
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-[#080810] flex flex-col items-center justify-center gap-4 text-center px-4">
+        <p className="text-white/40 text-6xl font-black">{sessionCode}</p>
+        <p className="text-white/50 text-xl">Session not found</p>
+        <a href="/" className="text-brand-400 hover:text-brand-300 text-sm mt-2">← Back to home</a>
+      </div>
+    );
+  }
 
   return (
     <div
